@@ -1,30 +1,38 @@
 import csv
 
 def count_votes(file_path):
+
     results = {}
-    
-    with open(file_path, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        next(reader)  # Skip the header
+
+    # Leer el archivo y procesar las filas
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader, None)  # Saltar el encabezado si existe
 
         for row in reader:
-            city = row[0]
-            candidate = row[1]
             try:
-            	votes = int(row[2])
-            except:
-                votes = 0
-            
-            if candidate in results:
-                results[candidate] += votes
-            else:
-                results[candidate] = votes
+                city, candidate, votes = row[0], row[1], int(row[2])
+            except (IndexError, ValueError):  # Manejo de errores: fila incompleta o votos inválidos
+                continue  # Ignorar filas con datos erróneos
 
-    for candidate, total_votes in results.items():
+            results[candidate] = results.get(candidate, 0) + votes  # Acumular votos por candidato
+
+    # Ordenar los resultados por cantidad de votos
+    sorted_results = sorted(results.items(), key=lambda item: item[1], reverse=True)
+
+    if not sorted_results:
+        print("No valid votes found.")
+        return
+
+    # Mostrar resultados
+    for candidate, total_votes in sorted_results:
         print(f"{candidate}: {total_votes} votes")
 
-    sortedbyvotes = sorted(results.items(), key=lambda item:item[1], reverse=True)
-    print(f"winner is {sortedbyvotes[0][0]}")
+    # Determinar si hay empate
+    if len(sorted_results) > 1 and sorted_results[0][1] == sorted_results[1][1]:
+        print("There is a tie.")
+    else:
+        print(f"Winner is {sorted_results[0][0]}")
 
-# Example usage
+# Ejemplo de uso
 count_votes('votes.csv')
